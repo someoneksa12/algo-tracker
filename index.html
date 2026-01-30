@@ -1,78 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced GB/CE Algo Tracker - PRO Edition</title>
-    <style>
-        /* CSS الأصلي مع تحسينات طفيفة للمسح الزمني */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', monospace; background: #000; color: #0f0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
-        .matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent); background-size: 50px 50px; z-index: -1; animation: matrix-move 20s linear infinite; }
-        @keyframes matrix-move { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
-        .header { text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.9); border-bottom: 2px solid #0f0; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
-        h1 { font-size: clamp(1.2em, 4vw, 2em); text-shadow: 0 0 10px #0f0; animation: glow-pulse 2s ease-in-out infinite; }
-        @keyframes glow-pulse { 0%, 100% { text-shadow: 0 0 10px #0f0; } 50% { text-shadow: 0 0 20px #0f0; } }
-        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; flex-direction: column; }
-        @media (min-width: 1024px) { .main-container { flex-direction: row; } }
-        .panel { background: rgba(0, 0, 0, 0.95); border: 2px solid #0f0; border-radius: 10px; padding: 15px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.2); }
-        .timezone-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 8px 0; background: rgba(0, 20, 0, 0.8); border: 1px solid #0f0; border-radius: 5px; }
-        .algo-termination { border-color: #ff0000 !important; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); animation: critical-pulse 1s infinite; }
-        @keyframes critical-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-        .confluence-item { padding: 10px; margin: 5px 0; background: rgba(0, 50, 0, 0.3); border-left: 3px solid #0f0; border-radius: 3px; font-size: 0.9em; }
-        .past-item { opacity: 0.5; border-left-color: #666; }
-        .future-item { border-left-color: #0ff; }
-        .num { padding: 3px 8px; border-radius: 3px; font-size: 0.85em; margin: 2px; display: inline-block; }
-        .num.gb { background: rgba(0, 255, 0, 0.2); border: 1px solid #0f0; color: #0f0; }
-        .num.ce { background: rgba(255, 255, 0, 0.2); border: 1px solid #ff0; color: #ff0; }
-    </style>
-</head>
-<body>
-    <div class="matrix-bg"></div>
-    <div class="header">
-        <h1>🔮 GB/CE ALGO SCANNER (1H WINDOW) 🔮</h1>
-        <div id="live-clock" style="color: #ff0; font-weight: bold; margin-top: 10px;">
-            TIME: <span id="live-time">--:--:--</span> <span style="color: #0f0; animation: blink 1s infinite;">● LIVE</span>
-        </div>
-    </div>
-
-    <div class="main-container">
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
-            <div class="panel">
-                <h3>⏰ CURRENT CONFLUENCE</h3>
-                <div class="timezone-row" id="ny-display">
-                    <div>NEW YORK</div>
-                    <div id="ny-val" style="font-size: 1.5em; font-weight: bold;">--:--</div>
-                    <div id="ny-status" style="color: #0ff;">SCANNING...</div>
-                </div>
-                <div class="timezone-row" id="zh-display">
-                    <div>ZURICH</div>
-                    <div id="zh-val" style="font-size: 1.5em; font-weight: bold;">--:--</div>
-                    <div id="zh-status" style="color: #0ff;">SCANNING...</div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <h3>📖 ALGO NUMBERS</h3>
-                <div style="font-size: 0.8em;">
-                    <p>GB: 0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100</p>
-                    <p>CE: 7, 14, 23, 35, 44, 56, 65, 77</p>
-                    <p style="color: #ff0000; margin-top: 5px;">TERMINATION: 29/35 | 71/77</p>
-                </div>
-            </div>
-        </div>
-
-        <div style="width: 100%; max-width: 450px;">
-            <div class="panel" style="max-height: 80vh; overflow-y: auto;">
-                <h3>⚡ 1H WINDOW SCAN (±60m)</h3>
-                <div id="window-list">
-                    </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const gbNumbers = [0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100];
+const gbNumbers = [0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100];
         const ceNumbers = [7, 14, 23, 35, 44, 56, 65, 77];
         const algoEnd = [29, 35, 71, 77];
 
@@ -81,58 +7,67 @@
         const isAlgoEnd = n => algoEnd.includes(Math.abs(n));
 
         function getAnalysis(date, tz) {
-            const parts = new Intl.DateTimeFormat('en-US', {
-                timeZone: tz, hour: 'numeric', minute: 'numeric', hour12: false
-            }).formatToParts(date);
-            const h = parseInt(parts.find(p => p.type === 'hour').value);
-            const m = parseInt(parts.find(p => p.type === 'minute').value);
+            const options = { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            const timeString = new Intl.DateTimeFormat('en-GB', options).format(date);
+            const [h, m, s] = timeString.split(':').map(Number);
+            
             const sum = h + m;
             const diff = Math.abs(m - h);
-            return { h, m, sum, diff, time: `${h}:${m.toString().padStart(2, '0')}` };
+            return { h, m, s, sum, diff, time: `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}` };
         }
 
         function update() {
             const now = new Date();
-            document.getElementById('live-time').textContent = now.toLocaleTimeString();
+            
+            // تحديث الساعة الحية في الأعلى
+            document.getElementById('live-time').textContent = now.toLocaleTimeString('en-GB');
 
-            // Current Update
+            // تحديث الوقت الحالي لنيويورك وزيورخ
             const ny = getAnalysis(now, 'America/New_York');
             const zh = getAnalysis(now, 'Europe/Zurich');
             
             document.getElementById('ny-val').textContent = ny.time;
             document.getElementById('zh-val').textContent = zh.time;
-            
-            // Window Scan (Past 60m to Future 60m)
+
+            // تحديد حالة التقاطع الحالي
+            const nyStatus = document.getElementById('ny-status');
+            if (isAlgoEnd(ny.sum) || isAlgoEnd(ny.diff)) {
+                nyStatus.innerHTML = '<span style="color:#ff0000; animation:blink 0.5s infinite;">CRITICAL TERMINATION</span>';
+            } else if (isGB(ny.sum) || isCE(ny.sum)) {
+                nyStatus.innerHTML = '<span style="color:#0f0;">ACTIVE CONFLUENCE</span>';
+            } else {
+                nyStatus.innerHTML = '<span style="color:#0ff;">SCANNING...</span>';
+            }
+
+            // تحديث قائمة الـ 1 Hour Window
             const list = document.getElementById('window-list');
-            list.innerHTML = '';
+            let content = '';
 
             for (let i = -60; i <= 60; i++) {
                 const scanTime = new Date(now.getTime() + (i * 60000));
-                const data = getAnalysis(scanTime, 'America/New_York'); // Based on NY Algo
+                const data = getAnalysis(scanTime, 'America/New_York');
 
                 if (isGB(data.sum) || isCE(data.sum) || isGB(data.diff) || isCE(data.diff)) {
                     const critical = isAlgoEnd(data.sum) || isAlgoEnd(data.diff);
-                    const item = document.createElement('div');
-                    item.className = `confluence-item ${i < 0 ? 'past-item' : 'future-item'} ${critical ? 'algo-termination' : ''}`;
+                    const itemClass = i < 0 ? 'past-item' : 'future-item';
+                    const termClass = critical ? 'algo-termination' : '';
                     
-                    item.innerHTML = `
-                        <div style="display:flex; justify-content:space-between">
-                            <strong>${data.time}</strong>
-                            <span style="color:${i < 0 ? '#666' : '#0f0'}">${i === 0 ? 'NOW' : i + 'm'}</span>
-                        </div>
-                        <div style="font-size:0.8em; margin-top:5px;">
-                            Sum: <span class="${isGB(data.sum)?'gb':'ce'}">${data.sum}</span> | 
-                            Diff: <span class="${isGB(data.diff)?'gb':'ce'}">${data.diff}</span>
-                            ${critical ? ' <span style="color:#ff0000; font-weight:bold;">[ALGO END]</span>' : ''}
-                        </div>
-                    `;
-                    list.appendChild(item);
+                    content += `
+                        <div class="confluence-item ${itemClass} ${termClass}">
+                            <div style="display:flex; justify-content:space-between">
+                                <strong>${data.time}</strong>
+                                <span style="color:${i < 0 ? '#666' : '#0f0'}">${i === 0 ? 'NOW' : i + 'm'}</span>
+                            </div>
+                            <div style="font-size:0.8em; margin-top:5px;">
+                                Sum: <span class="${isGB(data.sum)?'gb':'ce'}">${data.sum}</span> | 
+                                Diff: <span class="${isGB(data.diff)?'gb':'ce'}">${data.diff}</span>
+                                ${critical ? ' <span style="color:#ff0000; font-weight:bold;">[ALGO END]</span>' : ''}
+                            </div>
+                        </div>`;
                 }
             }
+            list.innerHTML = content;
         }
 
         setInterval(update, 1000);
         update();
-    </script>
-</body>
-</html>
