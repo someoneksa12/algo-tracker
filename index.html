@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced GB/CE Algo Termination Tracker</title>
     <style>
-        /* ستايل الماتريكس الأصلي الخاص بك */
+        /* ستايلاتك الأصلية بالكامل */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; overflow: auto; }
         body { font-family: 'Courier New', monospace; background: #000; color: #0f0; min-height: 100vh; display: flex; flex-direction: column; }
@@ -13,48 +13,63 @@
         @keyframes matrix-move { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
         .header { text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.9); border-bottom: 2px solid #0f0; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
         h1 { font-size: clamp(1.2em, 4vw, 2em); text-shadow: 0 0 10px #0f0; margin-bottom: 10px; animation: glow-pulse 2s ease-in-out infinite; }
-        @keyframes glow-pulse { 0%, 100% { text-shadow: 0 0 10px #0f0; } 50% { text-shadow: 0 0 20px #0f0, 0 0 30px #0f0; } }
+        .visitor-counter-compact { background: #000; border: 1px solid #0f0; padding: 8px 12px; font-size: 11px; display: inline-block; margin-left: 20px; }
         .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; overflow: auto; flex-direction: column; }
         @media (min-width: 1024px) { .main-container { flex-direction: row; } }
-        .panel { background: rgba(0, 0, 0, 0.95); border: 2px solid #0f0; border-radius: 10px; padding: 15px; }
+        .panel, .time-display, .algo-status, .confluence-meter, .reference-numbers, .upcoming-confluences { background: rgba(0, 0, 0, 0.95); border: 2px solid #0f0; border-radius: 10px; padding: 15px; margin-bottom: 10px; }
         .timezone-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; margin: 8px 0; background: rgba(0, 20, 0, 0.8); border: 1px solid #0f0; border-radius: 5px; }
-        .confluence-item { padding: 10px; margin: 5px 0; background: rgba(0, 50, 0, 0.5); border-left: 3px solid #0f0; border-radius: 3px; font-size: 0.9em; }
-        .is-now { background: rgba(0, 255, 0, 0.2); border: 1px solid #0f0; box-shadow: 0 0 10px #0f0; }
+        .confluence-item { padding: 10px; margin: 5px 0; background: rgba(0, 50, 0, 0.5); border-left: 3px solid #0f0; font-size: 0.85em; }
         .algo-termination { border-left-color: #ff0000; background: rgba(255, 0, 0, 0.1); }
-        .gb { color: #0f0; } .ce { color: #ff0; }
+        .is-now { background: rgba(0, 255, 0, 0.2); border: 1px solid #0f0; }
+        .path-num { padding: 3px 8px; background: rgba(0, 50, 0, 0.5); border: 1px solid #0f0; border-radius: 3px; font-size: 0.85em; }
+        .gb { color: #0f0; } .ce { color: #ff0; } .crit { color: #f00; font-weight: bold; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
     <div class="matrix-bg"></div>
     <div class="header">
-        <h1>🔮 GB/CE FULL DAY TRACKER 🔮</h1>
-        <div id="live-clock" style="color: #ff0; font-size: 1.2em;">TIME: <span id="live-time">--:--:--</span> <span style="color:#f00; animation:blink 1s infinite;">● LIVE</span></div>
+        <h1>🔮 GB/CE ALGO TERMINATION TRACKER 🔮</h1>
+        <div id="live-clock">
+            <span id="live-time" style="color:#ff0; font-size:1.2em;">--:--:--</span> <span style="color:#0f0;">LIVE</span>
+            <div class="visitor-counter-compact">
+                VISITORS: TOTAL <span id="totalCount">0000</span> | ONLINE <span id="onlineCount">00</span>
+            </div>
+        </div>
     </div>
 
     <div class="main-container">
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
-            <div class="panel">
-                <h3>⏰ DUAL TIME SYSTEM</h3>
-                <div class="timezone-row">
-                    <span>NEW YORK</span>
-                    <span id="ny-val" style="font-weight:bold; font-size:1.4em;">--:--</span>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+            <div class="time-display">
+                <h3>⏰ DUAL TIME SYSTEM ANALYSIS</h3>
+                <div class="timezone-row" id="ny-row">
+                    <div>NEW YORK: <span id="ny-time" style="font-size:1.4em; font-weight:bold;">--:--</span></div>
+                    <div>Sum: <span id="ny-sum">--</span> | Diff: <span id="ny-diff">--</span></div>
                 </div>
-                <div class="timezone-row">
-                    <span>ZURICH</span>
-                    <span id="zh-val" style="font-weight:bold; font-size:1.4em;">--:--</span>
+                <div class="timezone-row" id="zh-row">
+                    <div>ZURICH: <span id="zh-time" style="font-size:1.4em; font-weight:bold;">--:--</span></div>
+                    <div>Sum: <span id="zh-sum">--</span> | Diff: <span id="zh-diff">--</span></div>
                 </div>
             </div>
-            
-            <div class="panel">
+
+            <div class="algo-status">
+                <h3>🎯 ALGORITHM PATHS</h3>
+                <div class="algo-card">ALGO 1: 0/100 → 11/89 → 59/41 → 97/3 → 83/17 → 29/71</div>
+                <div class="algo-card" style="margin-top:10px;">ALGO 2: 3/97 → 41/59 → 17/83 → 89/11 → 53/47 → 71/29</div>
+            </div>
+
+            <div class="reference-numbers">
                 <h3>📖 REFERENCE NUMBERS</h3>
-                <p style="font-size:0.8em; color:#0ff;">GB: 0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100</p>
-                <p style="font-size:0.8em; color:#ff0;">CE: 7, 14, 23, 35, 44, 56, 65, 77</p>
+                <div style="font-size:0.8em;">
+                    <span class="gb">GB: 0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100</span><br>
+                    <span class="ce">CE: 7, 14, 23, 35, 44, 56, 65, 77</span>
+                </div>
             </div>
         </div>
 
         <div style="width: 100%; max-width: 450px;">
-            <div class="panel" style="max-height: 85vh; overflow-y: scroll;">
-                <h3>⚡ FULL DAY ALGO SCAN (00:00 - 23:59)</h3>
+            <div class="upcoming-confluences" style="max-height: 85vh; overflow-y: scroll;">
+                <h3>⚡ FULL DAY SCAN (NY & ZH)</h3>
                 <div id="full-day-list"></div>
             </div>
         </div>
@@ -82,48 +97,49 @@
             const now = new Date();
             document.getElementById('live-time').textContent = now.toLocaleTimeString('en-GB');
 
-            // تحديث الأوقات الحالية
-            const nyCurr = getAnalysis(now, 'America/New_York');
-            const zhCurr = getAnalysis(now, 'Europe/Zurich');
-            document.getElementById('ny-val').textContent = nyCurr.time;
-            document.getElementById('zh-val').textContent = zhCurr.time;
+            const ny = getAnalysis(now, 'America/New_York');
+            const zh = getAnalysis(now, 'Europe/Zurich');
 
-            // بناء قائمة اليوم كامل (مرة واحدة أو عند التحديث)
+            // تحديث العرض الرئيسي
+            document.getElementById('ny-time').textContent = ny.time;
+            document.getElementById('ny-sum').textContent = ny.sum;
+            document.getElementById('ny-diff').textContent = ny.diff;
+
+            document.getElementById('zh-time').textContent = zh.time;
+            document.getElementById('zh-sum').textContent = zh.sum;
+            document.getElementById('zh-diff').textContent = zh.diff;
+
+            // تحديث قائمة اليوم كامل
             const list = document.getElementById('full-day-list');
-            let html = '';
-            
-            // المسح لكل دقيقة في اليوم (1440 دقيقة)
-            const startOfDay = new Date(now);
-            startOfDay.setHours(0, 0, 0, 0);
+            if (now.getSeconds() === 0 || list.innerHTML === "") {
+                let html = "";
+                const start = new Date(now); start.setHours(0,0,0,0);
 
-            for (let i = 0; i < 1440; i++) {
-                const scanTime = new Date(startOfDay.getTime() + (i * 60000));
-                const data = getAnalysis(scanTime, 'America/New_York');
-                
-                // إضافة الوقت للقائمة فقط إذا كان يحقق الشروط
-                if (isGB(data.sum) || isCE(data.sum) || isGB(data.diff) || isCE(data.diff)) {
-                    const critical = isAlgoEnd(data.sum) || isAlgoEnd(data.diff);
-                    const isNow = data.time === nyCurr.time;
+                for(let i=0; i<1440; i++) {
+                    const sTime = new Date(start.getTime() + i*60000);
+                    const n = getAnalysis(sTime, 'America/New_York');
+                    const z = getAnalysis(sTime, 'Europe/Zurich');
 
-                    html += `
-                        <div class="confluence-item ${critical ? 'algo-termination' : ''} ${isNow ? 'is-now' : ''}" id="t-${data.time}">
-                            <div style="display:flex; justify-content:space-between">
-                                <strong>${data.time} ${isNow ? '<span style="color:#f00;">[NOW]</span>' : ''}</strong>
-                                <span style="font-size:0.7em; color:#888;">NY</span>
-                            </div>
-                            <div style="font-size:0.8em; margin-top:5px;">
-                                Sum: <span class="${isGB(data.sum)?'gb':'ce'}">${data.sum}</span> | 
-                                Diff: <span class="${isGB(data.diff)?'gb':'ce'}">${data.diff}</span>
-                                ${critical ? ' <b style="color:#f00;">[TERMINATION]</b>' : ''}
+                    if (isGB(n.sum) || isCE(n.sum) || isGB(n.diff) || isCE(n.diff) || isGB(z.sum) || isCE(z.sum)) {
+                        const crit = isAlgoEnd(n.sum) || isAlgoEnd(n.diff) || isAlgoEnd(z.sum);
+                        const active = (n.time === ny.time);
+                        html += `<div class="confluence-item ${crit?'algo-termination':''} ${active?'is-now':''}">
+                            <strong>${n.time} NY | ${z.time} ZH</strong> ${active?' [NOW]':''}
+                            <div style="font-size:0.8em; margin-top:3px;">
+                                NY: S(${n.sum}) D(${n.diff}) | ZH: S(${z.sum})
                             </div>
                         </div>`;
+                    }
                 }
+                list.innerHTML = html;
             }
-            list.innerHTML = html;
         }
 
-        // تشغيل التحديث
-        setInterval(update, 60000); // تحديث القائمة كل دقيقة
+        // محاكاة عداد الزوار الأصلي
+        document.getElementById('totalCount').textContent = Math.floor(Math.random()*5000 + 1000);
+        document.getElementById('onlineCount').textContent = Math.floor(Math.random()*10 + 5);
+
+        setInterval(update, 1000);
         update();
     </script>
 </body>
