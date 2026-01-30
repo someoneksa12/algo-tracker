@@ -1,4 +1,55 @@
-const gbNumbers = [0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GB/CE Algo Tracker - Fixed Edition</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #000; color: #0f0; min-height: 100vh; display: flex; flex-direction: column; }
+        .matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent); background-size: 50px 50px; z-index: -1; animation: matrix-move 20s linear infinite; }
+        @keyframes matrix-move { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
+        .header { text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.9); border-bottom: 2px solid #0f0; }
+        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; flex-direction: column; }
+        @media (min-width: 1024px) { .main-container { flex-direction: row; } }
+        .panel { background: rgba(0, 0, 0, 0.95); border: 2px solid #0f0; border-radius: 10px; padding: 15px; flex: 1; }
+        .timezone-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 8px 0; background: rgba(0, 20, 0, 0.8); border: 1px solid #0f0; border-radius: 5px; }
+        .confluence-item { padding: 10px; margin: 5px 0; background: rgba(0, 50, 0, 0.3); border-left: 3px solid #0f0; border-radius: 3px; font-size: 0.85em; }
+        .past-item { opacity: 0.5; border-left-color: #666; }
+        .future-item { border-left-color: #0ff; }
+        .algo-termination { border-color: #f00 !important; box-shadow: 0 0 10px rgba(255,0,0,0.5); }
+        .gb { color: #0f0; font-weight: bold; }
+        .ce { color: #ff0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    <div class="header">
+        <h1 id="title">🔮 ALGO TRACKER PRO 🔮</h1>
+        <div id="live-clock" style="color: #ff0; margin-top: 5px;">TIME: <span id="live-time">--:--:--</span></div>
+    </div>
+
+    <div class="main-container">
+        <div class="panel">
+            <h3>📍 CURRENT STATUS</h3>
+            <div class="timezone-row">
+                <span>NEW YORK</span>
+                <span id="ny-val" style="font-size: 1.2em;">--:--</span>
+            </div>
+            <div class="timezone-row">
+                <span>ZURICH</span>
+                <span id="zh-val" style="font-size: 1.2em;">--:--</span>
+            </div>
+        </div>
+
+        <div class="panel" style="max-width: 450px; max-height: 80vh; overflow-y: auto;">
+            <h3>⚡ 1H WINDOW SCANNER</h3>
+            <div id="window-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const gbNumbers = [0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100];
         const ceNumbers = [7, 14, 23, 35, 44, 56, 65, 77];
         const algoEnd = [29, 35, 71, 77];
 
@@ -7,67 +58,51 @@ const gbNumbers = [0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100];
         const isAlgoEnd = n => algoEnd.includes(Math.abs(n));
 
         function getAnalysis(date, tz) {
-            const options = { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            const timeString = new Intl.DateTimeFormat('en-GB', options).format(date);
-            const [h, m, s] = timeString.split(':').map(Number);
-            
-            const sum = h + m;
-            const diff = Math.abs(m - h);
-            return { h, m, s, sum, diff, time: `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}` };
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false
+            }).formatToParts(date);
+            const h = parseInt(parts.find(p => p.type === 'hour').value);
+            const m = parseInt(parts.find(p => p.type === 'minute').value);
+            return { h, m, sum: h + m, diff: Math.abs(m - h), time: `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}` };
         }
 
         function update() {
             const now = new Date();
-            
-            // تحديث الساعة الحية في الأعلى
             document.getElementById('live-time').textContent = now.toLocaleTimeString('en-GB');
 
-            // تحديث الوقت الحالي لنيويورك وزيورخ
+            // تصفية أوقات نيويورك وزيورخ
             const ny = getAnalysis(now, 'America/New_York');
             const zh = getAnalysis(now, 'Europe/Zurich');
-            
             document.getElementById('ny-val').textContent = ny.time;
             document.getElementById('zh-val').textContent = zh.time;
 
-            // تحديد حالة التقاطع الحالي
-            const nyStatus = document.getElementById('ny-status');
-            if (isAlgoEnd(ny.sum) || isAlgoEnd(ny.diff)) {
-                nyStatus.innerHTML = '<span style="color:#ff0000; animation:blink 0.5s infinite;">CRITICAL TERMINATION</span>';
-            } else if (isGB(ny.sum) || isCE(ny.sum)) {
-                nyStatus.innerHTML = '<span style="color:#0f0;">ACTIVE CONFLUENCE</span>';
-            } else {
-                nyStatus.innerHTML = '<span style="color:#0ff;">SCANNING...</span>';
-            }
-
-            // تحديث قائمة الـ 1 Hour Window
-            const list = document.getElementById('window-list');
-            let content = '';
-
+            // تحديث القائمة
+            let html = '';
             for (let i = -60; i <= 60; i++) {
                 const scanTime = new Date(now.getTime() + (i * 60000));
                 const data = getAnalysis(scanTime, 'America/New_York');
 
                 if (isGB(data.sum) || isCE(data.sum) || isGB(data.diff) || isCE(data.diff)) {
                     const critical = isAlgoEnd(data.sum) || isAlgoEnd(data.diff);
-                    const itemClass = i < 0 ? 'past-item' : 'future-item';
-                    const termClass = critical ? 'algo-termination' : '';
-                    
-                    content += `
-                        <div class="confluence-item ${itemClass} ${termClass}">
+                    html += `
+                        <div class="confluence-item ${i < 0 ? 'past-item' : 'future-item'} ${critical ? 'algo-termination' : ''}">
                             <div style="display:flex; justify-content:space-between">
                                 <strong>${data.time}</strong>
-                                <span style="color:${i < 0 ? '#666' : '#0f0'}">${i === 0 ? 'NOW' : i + 'm'}</span>
+                                <span>${i === 0 ? 'NOW' : i + 'm'}</span>
                             </div>
-                            <div style="font-size:0.8em; margin-top:5px;">
+                            <div style="font-size:0.8em; margin-top:3px">
                                 Sum: <span class="${isGB(data.sum)?'gb':'ce'}">${data.sum}</span> | 
                                 Diff: <span class="${isGB(data.diff)?'gb':'ce'}">${data.diff}</span>
-                                ${critical ? ' <span style="color:#ff0000; font-weight:bold;">[ALGO END]</span>' : ''}
+                                ${critical ? ' <b style="color:red">[TERM]</b>' : ''}
                             </div>
                         </div>`;
                 }
             }
-            list.innerHTML = content;
+            document.getElementById('window-list').innerHTML = html;
         }
 
         setInterval(update, 1000);
         update();
+    </script>
+</body>
+</html>
