@@ -1,177 +1,1291 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced GB/CE Algo Termination Tracker</title>
+<script defer src="https://umami.salimdev.de/script.js" data-website-id="b5273c7e-308c-4509-9b5b-6d4ee77bb575"></script>
     <style>
-        /* جميع الستايلات الأصلية كما هي دون اختصار */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; overflow: auto; }
-        body { font-family: 'Courier New', monospace; background: #000; color: #0f0; min-height: 100vh; display: flex; flex-direction: column; }
-        .matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent); background-size: 50px 50px; z-index: -1; animation: matrix-move 20s linear infinite; }
-        @keyframes matrix-move { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
-        .header { text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.9); border-bottom: 2px solid #0f0; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
-        h1 { font-size: clamp(1.2em, 4vw, 2em); text-shadow: 0 0 10px #0f0; margin-bottom: 10px; animation: glow-pulse 2s ease-in-out infinite; }
-        @keyframes glow-pulse { 0%, 100% { text-shadow: 0 0 10px #0f0; } 50% { text-shadow: 0 0 20px #0f0, 0 0 30px #0f0; } }
-        .visitor-counter-compact { background: #000; border: 1px solid #0f0; padding: 8px 12px; font-size: 11px; display: inline-block; margin-left: 20px; vertical-align: middle; }
-        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; overflow: auto; flex-direction: column; }
-        @media (min-width: 1024px) { .main-container { flex-direction: row; } }
-        .left-panel { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-        .right-panel { width: 100%; display: flex; flex-direction: column; gap: 20px; }
-        @media (min-width: 1024px) { .right-panel { width: 450px; } }
-        .time-display, .algo-status, .confluence-meter, .reference-numbers, .upcoming-confluences { background: rgba(0, 0, 0, 0.95); border: 2px solid #0f0; border-radius: 10px; padding: 15px; }
-        .timezone-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 8px 0; background: rgba(0, 20, 0, 0.8); border: 1px solid #0f0; border-radius: 5px; }
-        .time-value { font-size: 1.5em; font-weight: bold; color: #fff; }
-        .analysis-value { font-weight: bold; color: #0ff; }
-        .analysis-value.gb { color: #0f0; }
-        .analysis-value.ce { color: #ff0; }
-        .path-num { padding: 3px 8px; background: rgba(0, 50, 0, 0.5); border: 1px solid #0f0; border-radius: 3px; font-size: 0.85em; }
-        .path-num.active { background: #ffa500; color: #000; }
-        .confluence-item { padding: 10px; margin: 5px 0; background: rgba(0, 50, 0, 0.5); border-left: 3px solid #0f0; font-size: 0.85em; }
-        .confluence-item.algo-termination { border-left-color: #f00; background: rgba(255,0,0,0.1); }
-        .confluence-item.is-now { border: 1px solid #0f0; box-shadow: 0 0 10px #0f0; background: rgba(0,255,0,0.1); }
-        .num { padding: 2px 5px; margin: 2px; border-radius: 3px; font-size: 0.8em; display: inline-block; }
-        .num.gb { border: 1px solid #0f0; color: #0f0; }
-        .num.ce { border: 1px solid #ff0; color: #ff0; }
-        .num.critical { background: #f00; color: #fff; border: 1px solid #f00; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            overflow: auto; /* Prevent scrolling */
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent),
+                        linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: matrix-move 20s linear infinite;
+        }
+        
+        @keyframes matrix-move {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+        
+        .header {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.9);
+            border-bottom: 2px solid #0f0;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+        
+        h1 {
+            font-size: clamp(1.2em, 4vw, 2em);
+            text-shadow: 0 0 10px #0f0;
+            margin-bottom: 10px;
+            animation: glow-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes glow-pulse {
+            0%, 100% { text-shadow: 0 0 10px #0f0; }
+            50% { text-shadow: 0 0 20px #0f0, 0 0 30px #0f0; }
+        }
+        
+        .subtitle {
+            font-size: clamp(0.8em, 2vw, 1em);
+            color: #0ff;
+        }
+
+        /* Visitor Counter Styles */
+        .visitor-counter-compact {
+            background: #000;
+            border: 1px solid #0f0;
+            padding: 8px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            display: inline-block;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+            margin-left: 20px;
+            vertical-align: middle;
+        }
+
+        .visitor-counter-compact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.1), transparent);
+            animation: scan 6s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .counter-title {
+            color: #0f0;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+        }
+
+        .counter-value {
+            color: #0f0;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 255, 65, 0.8);
+            display: inline-block;
+            margin: 0 8px;
+        }
+
+        .counter-label {
+            color: rgba(0, 255, 65, 0.6);
+            font-size: 9px;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .live-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #ff0000;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .counter-separator {
+            color: rgba(0, 255, 65, 0.3);
+            margin: 0 5px;
+        }
+        
+        .main-container {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            overflow: auto;
+            flex-direction: column;
+        }
+        
+        @media (min-width: 1024px) {
+            .main-container {
+                flex-direction: row;
+            }
+        }
+        
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 0;
+        }
+        
+        .right-panel {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        @media (min-width: 1024px) {
+            .right-panel {
+                width: 450px;
+            }
+        }
+        
+        .time-display {
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        .timezone-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 8px 0;
+            background: rgba(0, 20, 0, 0.8);
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        @media (max-width: 480px) {
+            .timezone-row {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+        
+        .timezone-row.gb-hit {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: #0ff;
+            box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        .timezone-row.ce-hit {
+            background: rgba(255, 255, 0, 0.1);
+            border-color: #ff0;
+            box-shadow: inset 0 0 10px rgba(255, 255, 0, 0.3);
+        }
+        
+        .timezone-row.algo-end {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: #ff0000;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+            animation: critical-pulse 1s infinite;
+        }
+        
+        @keyframes critical-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 50px rgba(255, 0, 0, 0.8);
+                transform: scale(1.02);
+            }
+        }
+        
+        .time-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .time-value {
+            font-size: clamp(1.2em, 2.5vw, 1.5em);
+            font-weight: bold;
+            min-width: 120px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+        
+        .time-analysis {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .analysis-block {
+            text-align: center;
+        }
+        
+        .analysis-label {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 3px;
+        }
+        
+        .analysis-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #0ff;
+        }
+        
+        .analysis-value.is-gb {
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+        
+        .analysis-value.is-ce {
+            color: #ff0;
+            text-shadow: 0 0 10px #ff0;
+        }
+        
+        .analysis-value.is-algo-end {
+            color: #ff0000;
+            text-shadow: 0 0 15px #ff0000;
+            animation: blink 0.5s infinite;
+        }
+        
+        .calculation-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .calculation-method {
+            padding: 12px;
+            background: rgba(0, 50, 50, 0.3);
+            border-radius: 5px;
+            border: 1px solid #0aa;
+        }
+        
+        .method-title {
+            font-size: 0.9em;
+            color: #0ff;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .method-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .method-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 3px;
+        }
+        
+        .method-label {
+            font-size: 0.85em;
+            color: #0aa;
+        }
+        
+        .method-value {
+            font-size: 1em;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        
+        .badge.gb {
+            background: #0f0;
+            color: #000;
+        }
+        
+        .badge.ce {
+            background: #ff0;
+            color: #000;
+        }
+        
+        .badge.algo-end {
+            background: #ff0000;
+            color: #fff;
+            animation: blink 0.5s infinite;
+        }
+        
+        .algo-status {
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .algo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .algo-card {
+            background: rgba(0, 50, 0, 0.3);
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .algo-card.active {
+            background: rgba(255, 170, 0, 0.2);
+            border-color: #ffa500;
+            box-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
+        }
+        
+        .algo-card.ending {
+            background: rgba(255, 0, 0, 0.3);
+            border-color: #ff0000;
+            animation: pulse 1s infinite;
+        }
+        
+        .algo-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #0ff;
+        }
+        
+        .algo-level {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        
+        .confluence-meter {
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .meter-bar {
+            height: 20px;
+            background: #111;
+            border: 1px solid #0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0f0, #0ff, #ff0, #ffa500, #ff0000);
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px currentColor;
+        }
+        
+        .upcoming-confluences {
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: clip;
+        }
+        
+        .confluence-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0, 50, 0, 0.5);
+            border-left: 3px solid #0f0;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        
+        .confluence-item.critical {
+            border-left-color: #ffa500;
+            background: rgba(255, 170, 0, 0.1);
+        }
+        
+        .confluence-item.algo-termination {
+            border-left-color: #ff0000;
+            background: rgba(255, 0, 0, 0.1);
+        }
+        
+        .reference-numbers {
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .number-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .number-set {
+            padding: 10px;
+            background: rgba(0, 30, 0, 0.5);
+            border-radius: 5px;
+        }
+        
+        .number-set-title {
+            font-size: 0.9em;
+            color: #0ff;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .num {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+        }
+        
+        .num.gb {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #0f0;
+            color: #0f0;
+        }
+        
+        .num.ce {
+            background: rgba(255, 255, 0, 0.2);
+            border: 1px solid #ff0;
+            color: #ff0;
+        }
+        
+        .num.critical {
+            background: rgba(255, 0, 0, 0.3);
+            border: 1px solid #ff0000;
+            font-weight: bold;
+            animation: glow 2s infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px currentColor; }
+            50% { box-shadow: 0 0 15px currentColor; }
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        h3 {
+            color: #0ff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px #0ff;
+            font-size: clamp(1em, 2.5vw, 1.2em);
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px;
+            }
+            
+            .main-container {
+                padding: 10px;
+                gap: 15px;
+            }
+            
+            .time-display, .algo-status, .confluence-meter, .reference-numbers, .upcoming-confluences {
+                padding: 12px;
+            }
+            
+            .timezone-row {
+                padding: 10px;
+            }
+            
+            .time-analysis {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .method-grid, .algo-grid, .number-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .visitor-counter-compact {
+                display: block;
+                margin: 10px auto 0;
+            }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #0f0;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0ff;
+        }
+
+        .path-num {
+            padding: 3px 8px;
+            background: rgba(0, 50, 0, 0.5);
+            border: 1px solid #0f0;
+            border-radius: 3px;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+        .path-num.active {
+            background: rgba(255, 170, 0, 0.5);
+            border-color: #ffa500;
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        .signal-item.active {
+            background: rgba(0, 255, 0, 0.3) !important;
+            color: #0f0;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
     <div class="matrix-bg"></div>
+    
     <div class="header">
         <h1>🔮 GB/CE ALGO TERMINATION TRACKER 🔮</h1>
-        <div id="live-clock">
-            <span id="live-time" style="color:#ff0; font-size:1.2em;">--:--:--</span> <span style="color:#0f0;">LIVE ●</span>
+        <div class="subtitle">Goldbach & Consequent Encroachment Dual System Analysis</div>
+        <div id="live-clock" style="margin-top: 10px; font-size: 1.2em; color: #ff0; text-shadow: 0 0 10px #ff0;">
+            <span id="live-time">--:--:--</span> <span style="color: #0f0;">LIVE</span> 
+            <span style="animation: blink 1s infinite; color: #ff0000;">●</span>
+            
+            <!-- VISITOR COUNTER -->
             <div class="visitor-counter-compact">
-                TOTAL: <span id="totalCount">0000</span> | ONLINE: <span id="onlineCount">00</span>
+                <span class="live-dot"></span>
+                <span class="counter-title">VISITORS:</span>
+                <span class="counter-label">TOTAL</span>
+                <span class="counter-value" id="totalCount">0000</span>
+                <span class="counter-separator">|</span>
+                <span class="counter-label">ONLINE</span>
+                <span class="counter-value" id="onlineCount">00</span>
+                <span class="counter-separator">|</span>
+                <span class="counter-label">TODAY</span>
+                <span class="counter-value" id="todayCount">00</span>
             </div>
         </div>
     </div>
-
+    
     <div class="main-container">
         <div class="left-panel">
             <div class="time-display">
-                <h3>⏰ DUAL TIME SYSTEM ANALYSIS</h3>
-                <div class="timezone-row">
-                    <div>NEW YORK: <span id="ny-time" class="time-value">--:--</span></div>
-                    <div>Sum: <span id="ny-sum" class="analysis-value">--</span> | Diff: <span id="ny-diff" class="analysis-value">--</span></div>
+                <h3>⏰ DUAL TIME SYSTEM ANALYSIS <span style="float: right; font-size: 0.8em; color: #ff0; animation: pulse 2s infinite;">REAL-TIME</span></h3>
+                
+                <div class="timezone-row" id="ny-row">
+                    <div class="time-info">
+                        <div class="time-value" id="ny-time">--:--</div>
+                        <div>NEW YORK</div>
+                    </div>
+                    <div class="time-analysis">
+                        <div class="analysis-block">
+                            <div class="analysis-label">GB</div>
+                            <div class="analysis-value" id="ny-gb">--</div>
+                        </div>
+                        <div class="analysis-block">
+                            <div class="analysis-label">CE</div>
+                            <div class="analysis-value" id="ny-ce">--</div>
+                        </div>
+                        <div class="analysis-block">
+                            <div class="analysis-label">STATUS</div>
+                            <div class="analysis-value" id="ny-status">--</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="timezone-row">
-                    <div>ZURICH: <span id="zh-time" class="time-value">--:--</span></div>
-                    <div>Sum: <span id="zh-sum" class="analysis-value">--</span> | Diff: <span id="zh-diff" class="analysis-value">--</span></div>
+                
+                <div class="timezone-row" id="zurich-row">
+                    <div class="time-info">
+                        <div class="time-value" id="zurich-time">--:--</div>
+                        <div>ZURICH</div>
+                    </div>
+                    <div class="time-analysis">
+                        <div class="analysis-block">
+                            <div class="analysis-label">GB</div>
+                            <div class="analysis-value" id="zurich-gb">--</div>
+                        </div>
+                        <div class="analysis-block">
+                            <div class="analysis-label">CE</div>
+                            <div class="analysis-value" id="zurich-ce">--</div>
+                        </div>
+                        <div class="analysis-block">
+                            <div class="analysis-label">STATUS</div>
+                            <div class="analysis-value" id="zurich-status">--</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="calculation-methods">
+                    <div class="calculation-method">
+                        <div class="method-title">📈 Addition Method (H + M)</div>
+                        <div class="method-grid">
+                            <div class="method-item">
+                                <span class="method-label">NY:</span>
+                                <span class="method-value" id="ny-add-display">--</span>
+                            </div>
+                            <div class="method-item">
+                                <span class="method-label">ZH:</span>
+                                <span class="method-value" id="zurich-add-display">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="calculation-method">
+                        <div class="method-title">📉 Subtraction Method (M - H)</div>
+                        <div class="method-grid">
+                            <div class="method-item">
+                                <span class="method-label">NY:</span>
+                                <span class="method-value" id="ny-sub-display">--</span>
+                            </div>
+                            <div class="method-item">
+                                <span class="method-label">ZH:</span>
+                                <span class="method-value" id="zurich-sub-display">--</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
+            
             <div class="algo-status">
                 <h3>🎯 ALGORITHM PATHS</h3>
-                <div style="margin-bottom:10px;">
-                    <p style="font-size:0.8em; color:#0ff; margin-bottom:5px;">ALGO 1 PATH</p>
-                    <div id="path1">0/100 → 11/89 → 59/41 → 97/3 → 83/17 → 29/71</div>
+                <div class="algo-card" style="margin-bottom: 5px;">
+                    <div class="algo-name" style="color: #0ff; margin-bottom: 8px;">ALGO 1 PATH</div>
+                    <div class="algo-path" style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
+                        <span class="path-num" data-value="0">0/100</span>
+                        <span style="color: #666;">→</span>
+                        <span class="path-num" data-value="11">11/89</span>
+                        <span style="color: #666;">→</span>
+                        <span class="path-num" data-value="59">59/41</span>
+                        <span style="color: #666;">→</span>
+                        <span class="path-num" data-value="97">97/3</span>
+                        <span style="color: #666;">→</span>
+                        <span class="path-num" data-value="83">83/17</span>
+                        <span style="color: #666;">→</span>
+                        <span class="path-num" data-value="29" style="color: #ff0000; font-weight: bold;">29/71</span>
+                    </div>
                 </div>
-                <div>
-                    <p style="font-size:0.8em; color:#0ff; margin-bottom:5px;">ALGO 2 PATH</p>
-                    <div id="path2">3/97 → 41/59 → 17/83 → 89/11 → 53/47 → 71/29</div>
+                <div class="algo-card">
+                    <div class="algo-name" style="color: #0ff; margin-bottom: 8px;">ALGO 2 PATH</div>
+                    <div class="algo-path" style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
+                        <span class="path-num" data-value="3">3/97</span>
+                        <span style="color: #666;">→</span>
+                        <span class="path-num" data-value="41">41/59</span>
+                        <span style="color: #666;">→</span>
+                        <span class="path-num" data-value="17">17/83</span>
+                        <span style="color: #666;">→</span>
+                        <span class="path-num" data-value="89">89/11</span>
+                        <span style="color: #666;">→</span>
+                        <span class="path-num" data-value="53">53/47</span>
+                        <span style="color: #666;">→</span>
+                        <span class="path-num" data-value="71" style="color: #ff0000; font-weight: bold;">71/29</span>
+                    </div>
                 </div>
             </div>
-
-            <div class="reference-numbers">
-                <h3>📖 REFERENCE NUMBERS</h3>
-                <div style="margin-bottom:10px;">
-                    <span class="num gb">GB: 0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100</span>
+            
+            <div class="confluence-meter">
+                <h3>📊 CONFLUENCE STRENGTH</h3>
+                <div class="meter-bar">
+                    <div class="meter-fill" id="confluence-meter" style="width: 0%"></div>
                 </div>
-                <div>
-                    <span class="num ce">CE: 7, 14, 23, 35, 44, 56, 65, 77</span>
-                </div>
+                <div id="confluence-status">Scanning for confluences...</div>
             </div>
         </div>
-
+        
         <div class="right-panel">
-            <div class="upcoming-confluences" style="max-height: 85vh; overflow-y: auto;">
-                <h3>⚡ FULL DAY ALGO SCANNER (00:00-23:59)</h3>
-                <div id="full-day-list">
+            <div class="algo-signals" style="background: #000; border: 2px solid #0f0; border-radius: 10px; padding: 5px; margin-bottom: 10px;">
+                <h3 style="margin-bottom: 15px;">🎯 ALGO SIGNALS</h3>
+                <div class="signal-item" id="signal-29" style="padding: 10px; margin: 8px 0; background: rgba(0, 50, 0, 0.3); border-radius: 5px; text-align: center; font-weight: bold; transition: all 0.3s;">
+                    29 LIQUIDITY VOID
+                </div>
+                <div class="signal-item" id="signal-35" style="padding: 10px; margin: 8px 0; background: rgba(0, 50, 0, 0.3); border-radius: 5px; text-align: center; font-weight: bold; transition: all 0.3s;">
+                    35 ALGO TERMINATION
+                </div>
+                <div class="signal-item" id="signal-71" style="padding: 10px; margin: 8px 0; background: rgba(0, 50, 0, 0.3); border-radius: 5px; text-align: center; font-weight: bold; transition: all 0.3s;">
+                    71 LIQUIDITY VOID
+                </div>
+                <div class="signal-item" id="signal-77" style="padding: 10px; margin: 8px 0; background: rgba(0, 50, 0, 0.3); border-radius: 5px; text-align: center; font-weight: bold; transition: all 0.3s;">
+                    77 ALGO TERMINATION
+                </div>
+                <div class="signal-item" id="signal-double" style="padding: 10px; margin: 8px 0; background: rgba(0, 50, 0, 0.3); border-radius: 5px; text-align: center; font-weight: bold; transition: all 0.3s;">
+                    DOUBLE GOLDBACH
+                </div>
+            </div>
+            
+            <div class="reference-numbers">
+                <h3>📖 REFERENCE NUMBERS</h3>
+                <div class="number-grid">
+                    <div class="number-set">
+                        <div class="number-set-title">GB Numbers</div>
+                        <div class="numbers">
+                            <span class="num gb">0</span>
+                            <span class="num gb">3</span>
+                            <span class="num gb">11</span>
+                            <span class="num gb">17</span>
+                            <span class="num gb critical">29</span>
+                            <span class="num gb">41</span>
+                            <span class="num gb">47</span>
+                            <span class="num gb">50</span>
+                            <span class="num gb">53</span>
+                            <span class="num gb">59</span>
+                            <span class="num gb critical">71</span>
+                            <span class="num gb">83</span>
+                            <span class="num gb">89</span>
+                            <span class="num gb">97</span>
+                            <span class="num gb">100</span>
+                        </div>
                     </div>
+                    <div class="number-set">
+                        <div class="number-set-title">CE Numbers</div>
+                        <div class="numbers">
+                            <span class="num ce">7</span>
+                            <span class="num ce">14</span>
+                            <span class="num ce">23</span>
+                            <span class="num ce critical">35</span>
+                            <span class="num ce">44</span>
+                            <span class="num ce">56</span>
+                            <span class="num ce">65</span>
+                            <span class="num ce critical">77</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 5px; padding: 10px; background: rgba(255, 0, 0, 0.1); border-radius: 5px;">
+                    <strong style="color: #ff0000;">🔥 Algo Terminations:</strong><br>
+                    29/35 | 71/77
+                </div>
+            </div>
+            
+            <div class="upcoming-confluences">
+                <h3>⚡ NEXT ALGO TERMINATIONS</h3>
+                <div id="upcoming-list">
+                    <!-- Will be populated by JavaScript -->
+                </div>
             </div>
         </div>
     </div>
-
+    
     <script>
+        // Visitor Counter Logic
+        (function() {
+            // Get or create visitor data
+            function getVisitorData() {
+                const data = localStorage.getItem('visitorData');
+                if (data) {
+                    return JSON.parse(data);
+                }
+                return {
+                    total: 1337, // Cool starting number
+                    today: 42,
+                    lastVisit: new Date().toDateString()
+                };
+            }
+
+            // Save visitor data
+            function saveVisitorData(data) {
+                localStorage.setItem('visitorData', JSON.stringify(data));
+            }
+
+            // Check and update visitor count
+            function updateVisitorCount() {
+                const data = getVisitorData();
+                const today = new Date().toDateString();
+                const isNewVisitor = !sessionStorage.getItem('visited');
+                
+                if (isNewVisitor) {
+                    data.total++;
+                    sessionStorage.setItem('visited', 'true');
+                    
+                    if (data.lastVisit !== today) {
+                        data.today = 1;
+                        data.lastVisit = today;
+                    } else {
+                        data.today++;
+                    }
+                    
+                    saveVisitorData(data);
+                }
+                
+                return data;
+            }
+
+            // Animate number
+            function animateNumber(elementId, target, padding = 4) {
+                const element = document.getElementById(elementId);
+                if (!element) return;
+                
+                let current = 0;
+                const increment = target / 15;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    element.textContent = Math.floor(current).toString().padStart(padding, '0');
+                }, 30);
+            }
+
+            // Initialize visitor counter
+            document.addEventListener('DOMContentLoaded', function() {
+                const data = updateVisitorCount();
+                
+                // Update compact version
+                animateNumber('totalCount', data.total, 4);
+                animateNumber('todayCount', data.today, 2);
+                
+                // Simulate online users (3-9)
+                const online = Math.floor(Math.random() * 7) + 3;
+                animateNumber('onlineCount', online, 2);
+                
+                // Update online count periodically
+                setInterval(() => {
+                    const newOnline = Math.floor(Math.random() * 7) + 3;
+                    document.getElementById('onlineCount').textContent = 
+                        newOnline.toString().padStart(2, '0');
+                }, 20000);
+                
+                // Add random glitch effect
+                setInterval(() => {
+                    const values = document.querySelectorAll('.counter-value');
+                    const random = values[Math.floor(Math.random() * values.length)];
+                    random.style.opacity = '0.7';
+                    setTimeout(() => {
+                        random.style.opacity = '1';
+                    }, 50);
+                }, 4000);
+            });
+        })();
+
+        // GB and CE number sets
         const gbNumbers = [0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100];
         const ceNumbers = [7, 14, 23, 35, 44, 56, 65, 77];
-        const algoEnd = [29, 35, 71, 77];
-
-        const isGB = n => gbNumbers.includes(Math.abs(n));
-        const isCE = n => ceNumbers.includes(Math.abs(n));
-        const isAlgoEnd = n => algoEnd.includes(Math.abs(n));
-
-        function getAnalysis(date, tz) {
-            const options = { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false };
-            const parts = new Intl.DateTimeFormat('en-GB', options).formatToParts(date);
-            const h = parseInt(parts.find(p => p.type === 'hour').value);
-            const m = parseInt(parts.find(p => p.type === 'minute').value);
-            return { h, m, sum: h + m, diff: Math.abs(m - h), time: `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}` };
+        
+        // Algo termination points
+        const algoEndGB = [29, 71];
+        const algoEndCE = [35, 77];
+        
+        function isGB(num) {
+            return gbNumbers.includes(Math.abs(num));
         }
-
-        function update() {
-            const now = new Date();
-            document.getElementById('live-time').textContent = now.toLocaleTimeString('en-GB');
-
-            // التوقيت الحالي لنيويورك وزيورخ
-            const ny = getAnalysis(now, 'America/New_York');
-            const zh = getAnalysis(now, 'Europe/Zurich');
-
-            document.getElementById('ny-time').textContent = ny.time;
-            document.getElementById('ny-sum').textContent = ny.sum;
-            document.getElementById('ny-sum').className = `analysis-value ${isGB(ny.sum) ? 'gb' : (isCE(ny.sum) ? 'ce' : '')}`;
-            document.getElementById('ny-diff').textContent = ny.diff;
-
-            document.getElementById('zh-time').textContent = zh.time;
-            document.getElementById('zh-sum').textContent = zh.sum;
-            document.getElementById('zh-sum').className = `analysis-value ${isGB(zh.sum) ? 'gb' : (isCE(zh.sum) ? 'ce' : '')}`;
-            document.getElementById('zh-diff').textContent = zh.diff;
-
-            // تحديث قائمة اليوم كامل (مرة واحدة أو عند كل دقيقة)
-            if (now.getSeconds() === 0 || document.getElementById('full-day-list').innerHTML === "") {
-                let html = "";
-                // المسح من الدقيقة 0 إلى 1439 (اليوم كامل)
-                for (let i = 0; i < 1440; i++) {
-                    let d = new Date();
-                    d.setHours(0, 0, 0, 0);
-                    d.setMinutes(i);
-                    
-                    const scanNy = getAnalysis(d, 'America/New_York');
-                    const scanZh = getAnalysis(d, 'Europe/Zurich');
-
-                    // فحص إذا كان هناك تقاطع في نيويورك أو زيورخ
-                    if (isGB(scanNy.sum) || isCE(scanNy.sum) || isGB(scanNy.diff) || isCE(scanNy.diff) || isGB(scanZh.sum) || isCE(scanZh.sum)) {
-                        const critical = isAlgoEnd(scanNy.sum) || isAlgoEnd(scanNy.diff) || isAlgoEnd(scanZh.sum);
-                        const isNow = scanNy.time === ny.time;
-                        
-                        html += `
-                        <div class="confluence-item ${critical ? 'algo-termination' : ''} ${isNow ? 'is-now' : ''}">
-                            <div style="display:flex; justify-content:space-between">
-                                <strong>${scanNy.time} NY | ${scanZh.time} ZH</strong>
-                                <span>${isNow ? '[CURRENT]' : ''}</span>
-                            </div>
-                            <div style="font-size:0.8em; margin-top:5px;">
-                                NY Sum: <span class="${isGB(scanNy.sum)?'gb':'ce'}">${scanNy.sum}</span> | 
-                                Diff: <span class="${isGB(scanNy.diff)?'gb':'ce'}">${scanNy.diff}</span>
-                                ${critical ? ' <b style="color:#f00; animation:blink 1s infinite;">[ALGO END]</b>' : ''}
-                            </div>
-                        </div>`;
-                    }
+        
+        function isCE(num) {
+            return ceNumbers.includes(Math.abs(num));
+        }
+        
+        function isAlgoEnd(num) {
+            return algoEndGB.includes(Math.abs(num)) || algoEndCE.includes(Math.abs(num));
+        }
+        
+        function getTimeStatus(sum, diff) {
+            const sumGB = isGB(sum);
+            const sumCE = isCE(sum);
+            const diffGB = isGB(diff);
+            const diffCE = isCE(diff);
+            
+            const sumAlgoEnd = algoEndGB.includes(sum) || algoEndCE.includes(sum);
+            const diffAlgoEnd = algoEndGB.includes(diff) || algoEndCE.includes(diff);
+            
+            if (sumAlgoEnd || diffAlgoEnd) {
+                if (algoEndGB.includes(sum) || algoEndGB.includes(diff)) {
+                    if (sum === 29 || diff === 29) return { type: 'algo-end', text: 'A1 END!' };
+                    if (sum === 71 || diff === 71) return { type: 'algo-end', text: 'A2 END!' };
                 }
-                document.getElementById('full-day-list').innerHTML = html;
+                if (algoEndCE.includes(sum) || algoEndCE.includes(diff)) {
+                    if (sum === 35 || diff === 35) return { type: 'algo-end', text: 'CE 35!' };
+                    if (sum === 77 || diff === 77) return { type: 'algo-end', text: 'CE 77!' };
+                }
+            }
+            
+            if ((sumGB || diffGB) && (sumCE || diffCE)) {
+                return { type: 'dual', text: 'DUAL!' };
+            }
+            if (sumGB || diffGB) {
+                return { type: 'gb', text: 'GB' };
+            }
+            if (sumCE || diffCE) {
+                return { type: 'ce', text: 'CE' };
+            }
+            
+            return { type: 'none', text: '--' };
+        }
+        
+        function updateTimes() {
+            const now = new Date();
+            
+            // Update live clock with seconds
+            const liveTime = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('live-time').textContent = liveTime;
+            
+            // NY Time
+            const nyTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+            const nyHour = nyTime.getHours();
+            const nyMin = nyTime.getMinutes();
+            const nySec = nyTime.getSeconds();
+            const nySum = nyHour + nyMin;
+            const nyDiff = Math.abs(nyMin - nyHour);
+            
+            // Zurich Time (CET)
+            const zurichTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Zurich"}));
+            const zurichHour = zurichTime.getHours();
+            const zurichMin = zurichTime.getMinutes();
+            const zurichSec = zurichTime.getSeconds();
+            const zurichSum = zurichHour + zurichMin;
+            const zurichDiff = Math.abs(zurichMin - zurichHour);
+            
+            // Update time displays with seconds for real-time feel
+            document.getElementById('ny-time').textContent = 
+                `${nyHour.toString().padStart(2, '0')}:${nyMin.toString().padStart(2, '0')}:${nySec.toString().padStart(2, '0')}`;
+            document.getElementById('zurich-time').textContent = 
+                `${zurichHour.toString().padStart(2, '0')}:${zurichMin.toString().padStart(2, '0')}:${zurichSec.toString().padStart(2, '0')}`;
+            
+            // Update GB/CE analysis
+            const nyStatus = getTimeStatus(nySum, nyDiff);
+            const zurichStatus = getTimeStatus(zurichSum, zurichDiff);
+            
+            // NY Analysis
+            document.getElementById('ny-gb').textContent = (isGB(nySum) || isGB(nyDiff)) ? '✔' : '✗';
+            document.getElementById('ny-gb').className = 'analysis-value' + ((isGB(nySum) || isGB(nyDiff)) ? ' is-gb' : '');
+            
+            document.getElementById('ny-ce').textContent = (isCE(nySum) || isCE(nyDiff)) ? '✔' : '✗';
+            document.getElementById('ny-ce').className = 'analysis-value' + ((isCE(nySum) || isCE(nyDiff)) ? ' is-ce' : '');
+            
+            document.getElementById('ny-status').textContent = nyStatus.text;
+            document.getElementById('ny-status').className = 'analysis-value' + (nyStatus.type === 'algo-end' ? ' is-algo-end' : '');
+            
+            // Zurich Analysis
+            document.getElementById('zurich-gb').textContent = (isGB(zurichSum) || isGB(zurichDiff)) ? '✔' : '✗';
+            document.getElementById('zurich-gb').className = 'analysis-value' + ((isGB(zurichSum) || isGB(zurichDiff)) ? ' is-gb' : '');
+            
+            document.getElementById('zurich-ce').textContent = (isCE(zurichSum) || isCE(zurichDiff)) ? '✔' : '✗';
+            document.getElementById('zurich-ce').className = 'analysis-value' + ((isCE(zurichSum) || isCE(zurichDiff)) ? ' is-ce' : '');
+            
+            document.getElementById('zurich-status').textContent = zurichStatus.text;
+            document.getElementById('zurich-status').className = 'analysis-value' + (zurichStatus.type === 'algo-end' ? ' is-algo-end' : '');
+            
+            // Update row classes
+            document.getElementById('ny-row').className = 'timezone-row' + 
+                (nyStatus.type === 'algo-end' ? ' algo-end' : 
+                 nyStatus.type === 'gb' ? ' gb-hit' : 
+                 nyStatus.type === 'ce' ? ' ce-hit' : '');
+            
+            document.getElementById('zurich-row').className = 'timezone-row' + 
+                (zurichStatus.type === 'algo-end' ? ' algo-end' : 
+                 zurichStatus.type === 'gb' ? ' gb-hit' : 
+                 zurichStatus.type === 'ce' ? ' ce-hit' : '');
+            
+            // Update calculation method displays
+            updateMethodDisplays(nySum, nyDiff, zurichSum, zurichDiff);
+            
+            // Update algo cards
+            updateAlgoCards(nySum, nyDiff, zurichSum, zurichDiff);
+            
+            // Calculate confluence
+            calculateConfluence(nyStatus, zurichStatus, nySum, nyDiff, zurichSum, zurichDiff);
+        }
+        
+        function updateMethodDisplays(nySum, nyDiff, zurichSum, zurichDiff) {
+            // Addition method
+            const nyAddEl = document.getElementById('ny-add-display');
+            nyAddEl.innerHTML = `${nySum}`;
+            if (isGB(nySum)) nyAddEl.innerHTML += ' <span class="badge gb">GB</span>';
+            if (isCE(nySum)) nyAddEl.innerHTML += ' <span class="badge ce">CE</span>';
+            if (algoEndGB.includes(nySum) || algoEndCE.includes(nySum)) {
+                nyAddEl.innerHTML += ' <span class="badge algo-end">END</span>';
+            }
+            
+            const zurichAddEl = document.getElementById('zurich-add-display');
+            zurichAddEl.innerHTML = `${zurichSum}`;
+            if (isGB(zurichSum)) zurichAddEl.innerHTML += ' <span class="badge gb">GB</span>';
+            if (isCE(zurichSum)) zurichAddEl.innerHTML += ' <span class="badge ce">CE</span>';
+            if (algoEndGB.includes(zurichSum) || algoEndCE.includes(zurichSum)) {
+                zurichAddEl.innerHTML += ' <span class="badge algo-end">END</span>';
+            }
+            
+            // Subtraction method
+            const nySubEl = document.getElementById('ny-sub-display');
+            nySubEl.innerHTML = `${nyDiff}`;
+            if (isGB(nyDiff)) nySubEl.innerHTML += ' <span class="badge gb">GB</span>';
+            if (isCE(nyDiff)) nySubEl.innerHTML += ' <span class="badge ce">CE</span>';
+            if (algoEndGB.includes(nyDiff) || algoEndCE.includes(nyDiff)) {
+                nySubEl.innerHTML += ' <span class="badge algo-end">END</span>';
+            }
+            
+            const zurichSubEl = document.getElementById('zurich-sub-display');
+            zurichSubEl.innerHTML = `${zurichDiff}`;
+            if (isGB(zurichDiff)) zurichSubEl.innerHTML += ' <span class="badge gb">GB</span>';
+            if (isCE(zurichDiff)) zurichSubEl.innerHTML += ' <span class="badge ce">CE</span>';
+            if (algoEndGB.includes(zurichDiff) || algoEndCE.includes(zurichDiff)) {
+                zurichSubEl.innerHTML += ' <span class="badge algo-end">END</span>';
             }
         }
-
-        // عداد الزوار (محاكاة كما في كودك)
-        document.getElementById('totalCount').textContent = Math.floor(Math.random() * 5000 + 1200);
-        document.getElementById('onlineCount').textContent = Math.floor(Math.random() * 12 + 5);
-
-        setInterval(update, 1000);
-        update();
+        
+        function updateAlgoCards(nySum, nyDiff, zurichSum, zurichDiff) {
+            // Highlight path numbers based on current values
+            const currentValues = [nySum, nyDiff, zurichSum, zurichDiff];
+            
+            // Reset all path numbers
+            document.querySelectorAll('.path-num').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Highlight active path numbers
+            currentValues.forEach(val => {
+                document.querySelectorAll(`.path-num[data-value="${val}"]`).forEach(el => {
+                    el.classList.add('active');
+                });
+                // Also check opposite values for the pairs
+                const opposites = {
+                    0: 100, 100: 0,
+                    3: 97, 97: 3,
+                    11: 89, 89: 11,
+                    17: 83, 83: 17,
+                    29: 71, 71: 29,
+                    41: 59, 59: 41,
+                    47: 53, 53: 47
+                };
+                if (opposites[val]) {
+                    document.querySelectorAll(`.path-num[data-value="${opposites[val]}"]`).forEach(el => {
+                        el.classList.add('active');
+                    });
+                }
+            });
+            
+            // Update signal panel
+            document.querySelectorAll('.signal-item').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            if (currentValues.includes(29)) {
+                document.getElementById('signal-29').classList.add('active');
+            }
+            if (currentValues.includes(35)) {
+                document.getElementById('signal-35').classList.add('active');
+            }
+            if (currentValues.includes(71)) {
+                document.getElementById('signal-71').classList.add('active');
+            }
+            if (currentValues.includes(77)) {
+                document.getElementById('signal-77').classList.add('active');
+            }
+            
+            // Check for double Goldbach
+            const hasGB = currentValues.some(v => gbNumbers.includes(v));
+            const hasCE = currentValues.some(v => ceNumbers.includes(v));
+            if (hasGB && hasCE) {
+                document.getElementById('signal-double').classList.add('active');
+            }
+        }
+        
+        function calculateConfluence(nyStatus, zurichStatus, nySum, nyDiff, zurichSum, zurichDiff) {
+            let confluenceScore = 0;
+            let statusText = 'No significant confluence';
+            
+            // Check for algo terminations
+            const hasAlgoEnd = [nySum, nyDiff, zurichSum, zurichDiff].some(n => 
+                algoEndGB.includes(n) || algoEndCE.includes(n)
+            );
+            
+            // Double algo end (both zones hit termination)
+            const nyHasEnd = [nySum, nyDiff].some(n => algoEndGB.includes(n) || algoEndCE.includes(n));
+            const zurichHasEnd = [zurichSum, zurichDiff].some(n => algoEndGB.includes(n) || algoEndCE.includes(n));
+            
+            if (nyHasEnd && zurichHasEnd) {
+                confluenceScore = 100;
+                statusText = '🔥🔥 DOUBLE ALGO TERMINATION - EXTREME CONFLUENCE!';
+            } else if (hasAlgoEnd) {
+                confluenceScore = 80;
+                statusText = '🔥 ALGO TERMINATION DETECTED!';
+            } else if (nyStatus.type === 'dual' || zurichStatus.type === 'dual') {
+                confluenceScore = 70;
+                statusText = '⚡ GB/CE DUAL HIT - HIGH PROBABILITY';
+            } else if ((nyStatus.type !== 'none' && zurichStatus.type !== 'none')) {
+                confluenceScore = 50;
+                statusText = '📊 MULTI-ZONE CONFLUENCE';
+            } else if (nyStatus.type !== 'none' || zurichStatus.type !== 'none') {
+                confluenceScore = 30;
+                statusText = '👀 SINGLE ZONE ACTIVITY';
+            }
+            
+            document.getElementById('confluence-meter').style.width = confluenceScore + '%';
+            document.getElementById('confluence-status').textContent = statusText;
+        }
+        
+        function findUpcomingConfluences() {
+            const now = new Date();
+            const upcoming = [];
+            
+            // Check next 60 minutes
+            for (let i = 1; i <= 60; i++) {
+                const future = new Date(now.getTime() + i * 60000);
+                
+                const nyTime = new Date(future.toLocaleString("en-US", {timeZone: "America/New_York"}));
+                const nyHour = nyTime.getHours();
+                const nyMin = nyTime.getMinutes();
+                
+                const zurichTime = new Date(future.toLocaleString("en-US", {timeZone: "Europe/Zurich"}));
+                const zurichHour = zurichTime.getHours();
+                const zurichMin = zurichTime.getMinutes();
+                
+                const nySum = nyHour + nyMin;
+                const zurichSum = zurichHour + zurichMin;
+                const nyDiff = Math.abs(nyMin - nyHour);
+                const zurichDiff = Math.abs(zurichMin - zurichHour);
+                
+                // Check for algo terminations
+                const hasTermination = [nySum, nyDiff, zurichSum, zurichDiff].some(n => 
+                    algoEndGB.includes(n) || algoEndCE.includes(n)
+                );
+                
+                // Check for any GB or CE hit
+                const hasGB = [nySum, nyDiff, zurichSum, zurichDiff].some(n => isGB(n));
+                const hasCE = [nySum, nyDiff, zurichSum, zurichDiff].some(n => isCE(n));
+                
+                if (hasTermination || (hasGB && hasCE)) {
+                    let type = 'normal';
+                    let description = '';
+                    
+                    if ([nySum, nyDiff, zurichSum, zurichDiff].includes(29)) {
+                        type = 'algo-termination';
+                        description = 'ALGO 1 END (29)';
+                    } else if ([nySum, nyDiff, zurichSum, zurichDiff].includes(35)) {
+                        type = 'algo-termination';
+                        description = 'CE TERMINATION (35)';
+                    } else if ([nySum, nyDiff, zurichSum, zurichDiff].includes(71)) {
+                        type = 'algo-termination';
+                        description = 'ALGO 2 END (71)';
+                    } else if ([nySum, nyDiff, zurichSum, zurichDiff].includes(77)) {
+                        type = 'algo-termination';
+                        description = 'CE TERMINATION (77)';
+                    } else if (hasGB && hasCE) {
+                        type = 'critical';
+                        description = 'GB/CE Confluence';
+                    }
+                    
+                    upcoming.push({
+                        minutes: i,
+                        time: `${nyHour.toString().padStart(2, '0')}:${nyMin.toString().padStart(2, '0')}`,
+                        nySum,
+                        zurichSum,
+                        nyDiff,
+                        zurichDiff,
+                        type,
+                        description
+                    });
+                }
+            }
+            
+            // Display top 5
+            const list = document.getElementById('upcoming-list');
+            list.innerHTML = '';
+            
+            if (upcoming.length === 0) {
+                list.innerHTML = '<div class="confluence-item">No significant confluences in next 60 minutes</div>';
+            } else {
+                upcoming.slice(0, 5).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'confluence-item ' + item.type;
+                    
+                    let badges = '';
+                    if (isGB(item.nySum)) badges += ' <span class="badge gb">GB</span>';
+                    if (isCE(item.nySum)) badges += ' <span class="badge ce">CE</span>';
+                    
+                    div.innerHTML = `
+                        <strong>In ${item.minutes} min:</strong> ${item.time} NY<br>
+                        <strong>${item.description}</strong><br>
+                        NY: ${item.nySum}/${item.nyDiff} | ZH: ${item.zurichSum}/${item.zurichDiff}
+                        ${item.type === 'algo-termination' ? ' 🔥🔥🔥' : ''}
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
+        
+        // Update every second
+        setInterval(updateTimes, 1000);
+        setInterval(findUpcomingConfluences, 30000); // Update upcoming every 30 seconds
+        
+        // Initial calls
+        updateTimes();
+        findUpcomingConfluences();
     </script>
 </body>
 </html>
+
