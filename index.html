@@ -3,141 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced GB/CE Algo Termination Tracker</title>
+    <title>GB/CE ALGO TERMINATION TRACKER</title>
     <style>
-        /* ستايلاتك الأصلية بالكامل */
+        :root { --neon-green: #00ff00; --neon-blue: #00ffff; --neon-red: #ff0000; --neon-yellow: #ffff00; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; overflow: auto; }
-        body { font-family: 'Courier New', monospace; background: #000; color: #0f0; min-height: 100vh; display: flex; flex-direction: column; }
-        .matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent); background-size: 50px 50px; z-index: -1; animation: matrix-move 20s linear infinite; }
-        @keyframes matrix-move { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
-        .header { text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.9); border-bottom: 2px solid #0f0; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
-        h1 { font-size: clamp(1.2em, 4vw, 2em); text-shadow: 0 0 10px #0f0; margin-bottom: 10px; animation: glow-pulse 2s ease-in-out infinite; }
-        .visitor-counter-compact { background: #000; border: 1px solid #0f0; padding: 8px 12px; font-size: 11px; display: inline-block; margin-left: 20px; }
-        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; overflow: auto; flex-direction: column; }
-        @media (min-width: 1024px) { .main-container { flex-direction: row; } }
-        .panel, .time-display, .algo-status, .confluence-meter, .reference-numbers, .upcoming-confluences { background: rgba(0, 0, 0, 0.95); border: 2px solid #0f0; border-radius: 10px; padding: 15px; margin-bottom: 10px; }
-        .timezone-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; margin: 8px 0; background: rgba(0, 20, 0, 0.8); border: 1px solid #0f0; border-radius: 5px; }
-        .confluence-item { padding: 10px; margin: 5px 0; background: rgba(0, 50, 0, 0.5); border-left: 3px solid #0f0; font-size: 0.85em; }
-        .algo-termination { border-left-color: #ff0000; background: rgba(255, 0, 0, 0.1); }
-        .is-now { background: rgba(0, 255, 0, 0.2); border: 1px solid #0f0; }
-        .path-num { padding: 3px 8px; background: rgba(0, 50, 0, 0.5); border: 1px solid #0f0; border-radius: 3px; font-size: 0.85em; }
-        .gb { color: #0f0; } .ce { color: #ff0; } .crit { color: #f00; font-weight: bold; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        body { background-color: #000; color: var(--neon-green); font-family: 'Courier New', Courier, monospace; overflow-x: hidden; }
+        
+        /* خلفية الشبكة الخضراء مثل الصورة */
+        .grid-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-image: linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px; z-index: -1; }
+
+        .header { text-align: center; padding: 20px; border-bottom: 2px solid var(--neon-green); background: rgba(0,0,0,0.8); }
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; padding: 15px; max-width: 1400px; margin: auto; }
+
+        .section { border: 1px solid var(--neon-green); padding: 10px; position: relative; background: rgba(0,10,0,0.9); margin-bottom: 15px; }
+        .section-title { background: #000; position: absolute; top: -10px; left: 10px; padding: 0 10px; font-size: 0.8em; font-weight: bold; color: var(--neon-blue); border: 1px solid var(--neon-blue); }
+
+        /* ستايل الوقت الكبير (NY / ZH) */
+        .time-box { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .ny-box { border: 1px solid var(--neon-red); background: rgba(255,0,0,0.1); color: var(--neon-red); }
+        .zh-box { border: 1px solid var(--neon-green); background: rgba(0,255,0,0.05); }
+
+        /* جداول الحسابات (Addition / Subtraction) */
+        .calc-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        .calc-table td { border: 1px solid #113311; padding: 5px; }
+
+        /* قائمة السكنر (اليوم كامل) */
+        .full-scan-list { max-height: 400px; overflow-y: auto; font-size: 0.75em; }
+        .scan-row { display: flex; justify-content: space-between; border-bottom: 1px solid #113311; padding: 5px 0; }
+        .scan-row.active { background: rgba(0,255,0,0.2); color: #fff; }
+        .term-alert { color: var(--neon-red); font-weight: bold; }
+
+        /* الأزرار والأرقام الملونة */
+        .num-tag { padding: 2px 5px; border-radius: 3px; font-size: 0.8em; margin: 0 2px; border: 1px solid; }
+        .gb-tag { border-color: var(--neon-green); color: var(--neon-green); }
+        .ce-tag { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+        
+        .visitor-bar { background: #001a00; border: 1px solid var(--neon-green); padding: 5px; font-size: 10px; text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div class="matrix-bg"></div>
+    <div class="grid-bg"></div>
+    
     <div class="header">
-        <h1>🔮 GB/CE ALGO TERMINATION TRACKER 🔮</h1>
-        <div id="live-clock">
-            <span id="live-time" style="color:#ff0; font-size:1.2em;">--:--:--</span> <span style="color:#0f0;">LIVE</span>
-            <div class="visitor-counter-compact">
-                VISITORS: TOTAL <span id="totalCount">0000</span> | ONLINE <span id="onlineCount">00</span>
-            </div>
+        <h1 style="color: var(--neon-green); letter-spacing: 5px;">🏰 GB/CE ALGO TERMINATION TRACKER 🏰</h1>
+        <p style="font-size: 0.7em; color: var(--neon-blue);">Goldbach & Consequent Encroachment Dual System Analysis</p>
+        <div style="margin-top:10px; font-size: 1.2em; color: var(--neon-yellow);">
+            <span id="live-time">19:24:41</span> <span style="color:red; font-size:0.6em;">LIVE ●</span>
         </div>
     </div>
 
-    <div class="main-container">
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
-            <div class="time-display">
-                <h3>⏰ DUAL TIME SYSTEM ANALYSIS</h3>
-                <div class="timezone-row" id="ny-row">
-                    <div>NEW YORK: <span id="ny-time" style="font-size:1.4em; font-weight:bold;">--:--</span></div>
-                    <div>Sum: <span id="ny-sum">--</span> | Diff: <span id="ny-diff">--</span></div>
+    <div class="main-grid">
+        <div class="left-col">
+            <div class="visitor-bar">
+                VISITORS: TOTAL <span style="color:#fff">1338</span> | ONLINE <span style="color:#fff">09</span> | TODAY <span style="color:#fff">43</span>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🕒 DUAL TIME SYSTEM ANALYSIS</div>
+                <div class="time-box ny-box">
+                    <span id="ny-val" style="font-size: 1.5em; font-weight: bold;">11:24:41</span>
+                    <span>NEW YORK</span>
+                    <span style="font-size: 0.8em;">STATUS: <b id="ny-stat">CE 35!</b></span>
                 </div>
-                <div class="timezone-row" id="zh-row">
-                    <div>ZURICH: <span id="zh-time" style="font-size:1.4em; font-weight:bold;">--:--</span></div>
-                    <div>Sum: <span id="zh-sum">--</span> | Diff: <span id="zh-diff">--</span></div>
+                <div class="time-box zh-box">
+                    <span id="zh-val" style="font-size: 1.5em; font-weight: bold;">17:24:41</span>
+                    <span>ZURICH</span>
+                    <span style="font-size: 0.8em; color: var(--neon-blue);">STATUS: DUAL!</span>
                 </div>
             </div>
 
-            <div class="algo-status">
-                <h3>🎯 ALGORITHM PATHS</h3>
-                <div class="algo-card">ALGO 1: 0/100 → 11/89 → 59/41 → 97/3 → 83/17 → 29/71</div>
-                <div class="algo-card" style="margin-top:10px;">ALGO 2: 3/97 → 41/59 → 17/83 → 89/11 → 53/47 → 71/29</div>
+            <div class="section">
+                <div class="section-title">📊 ADDITION METHOD (H + M)</div>
+                <table class="calc-table">
+                    <tr>
+                        <td>NY: <span id="ny-add-val">35</span> <span class="num-tag ce-tag">CE</span> <span class="num-tag" style="background:red; color:white;">END</span></td>
+                        <td>ZH: <span id="zh-add-val">41</span> <span class="num-tag gb-tag">GB</span></td>
+                    </tr>
+                </table>
             </div>
 
-            <div class="reference-numbers">
-                <h3>📖 REFERENCE NUMBERS</h3>
-                <div style="font-size:0.8em;">
-                    <span class="gb">GB: 0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100</span><br>
-                    <span class="ce">CE: 7, 14, 23, 35, 44, 56, 65, 77</span>
+            <div class="section">
+                <div class="section-title">📉 SUBTRACTION METHOD (M - H)</div>
+                <table class="calc-table">
+                    <tr>
+                        <td>NY: <span id="ny-sub-val">13</span></td>
+                        <td>ZH: <span id="zh-sub-val">7</span> <span class="num-tag ce-tag">CE</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🎯 ALGORITHM PATHS</div>
+                <div style="font-size: 0.7em; text-align: center; padding: 10px;">
+                    <p style="color: var(--neon-green);">ALGO 1 PATH</p>
+                    <p>0/100 → 11/89 → <span style="background:var(--neon-yellow); color:#000;">59/41</span> → 97/3 → 29/71</p>
                 </div>
             </div>
         </div>
 
-        <div style="width: 100%; max-width: 450px;">
-            <div class="upcoming-confluences" style="max-height: 85vh; overflow-y: scroll;">
-                <h3>⚡ FULL DAY SCAN (NY & ZH)</h3>
-                <div id="full-day-list"></div>
+        <div class="right-col">
+            <div class="section">
+                <div class="section-title">🚀 ALGO SIGNALS</div>
+                <div style="font-size: 0.8em; line-height: 2;">
+                    <div style="border-bottom: 1px solid #113311;">29 LIQUIDITY VOID</div>
+                    <div style="background: rgba(0,255,0,0.2); padding: 2px;">35 ALGO TERMINATION</div>
+                    <div style="border-bottom: 1px solid #113311;">71 LIQUIDITY VOID</div>
+                    <div style="background: rgba(0,255,0,0.1); padding: 2px;">77 ALGO TERMINATION</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">⚡ FULL DAY SCANNER</div>
+                <div class="full-scan-list" id="scan-list">
+                    </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">📖 REFERENCE NUMBERS</div>
+                <div style="font-size: 0.6em; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                    <div>GB: 0, 3, 11, 17, 29, 41, 47...</div>
+                    <div>CE: 7, 14, 23, 35, 44...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const gbNumbers = [0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100];
-        const ceNumbers = [7, 14, 23, 35, 44, 56, 65, 77];
-        const algoEnd = [29, 35, 71, 77];
-
-        const isGB = n => gbNumbers.includes(Math.abs(n));
-        const isCE = n => ceNumbers.includes(Math.abs(n));
-        const isAlgoEnd = n => algoEnd.includes(Math.abs(n));
-
-        function getAnalysis(date, tz) {
-            const parts = new Intl.DateTimeFormat('en-GB', {
-                timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false
-            }).formatToParts(date);
-            const h = parseInt(parts.find(p => p.type === 'hour').value);
-            const m = parseInt(parts.find(p => p.type === 'minute').value);
-            return { h, m, sum: h + m, diff: Math.abs(m - h), time: `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}` };
-        }
+        const gb = [0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100];
+        const ce = [7, 14, 23, 35, 44, 56, 65, 77];
+        const term = [29, 35, 71, 77];
 
         function update() {
             const now = new Date();
-            document.getElementById('live-time').textContent = now.toLocaleTimeString('en-GB');
+            const format = (tz) => new Intl.DateTimeFormat('en-GB', {timeZone: tz, hour:'2-digit', minute:'2-digit', second:'2-digit'}).format(now);
+            
+            const nyTime = format('America/New_York');
+            const zhTime = format('Europe/Zurich');
+            
+            document.getElementById('live-time').innerText = now.toLocaleTimeString();
+            document.getElementById('ny-val').innerText = nyTime;
+            document.getElementById('zh-val').innerText = zhTime;
 
-            const ny = getAnalysis(now, 'America/New_York');
-            const zh = getAnalysis(now, 'Europe/Zurich');
+            // حسابات بسيطة للعرض
+            const [nyH, nyM] = nyTime.split(':').map(Number);
+            document.getElementById('ny-add-val').innerText = nyH + nyM;
+            document.getElementById('ny-sub-val').innerText = Math.abs(nyM - nyH);
 
-            // تحديث العرض الرئيسي
-            document.getElementById('ny-time').textContent = ny.time;
-            document.getElementById('ny-sum').textContent = ny.sum;
-            document.getElementById('ny-diff').textContent = ny.diff;
-
-            document.getElementById('zh-time').textContent = zh.time;
-            document.getElementById('zh-sum').textContent = zh.sum;
-            document.getElementById('zh-diff').textContent = zh.diff;
-
-            // تحديث قائمة اليوم كامل
-            const list = document.getElementById('full-day-list');
-            if (now.getSeconds() === 0 || list.innerHTML === "") {
-                let html = "";
-                const start = new Date(now); start.setHours(0,0,0,0);
-
-                for(let i=0; i<1440; i++) {
-                    const sTime = new Date(start.getTime() + i*60000);
-                    const n = getAnalysis(sTime, 'America/New_York');
-                    const z = getAnalysis(sTime, 'Europe/Zurich');
-
-                    if (isGB(n.sum) || isCE(n.sum) || isGB(n.diff) || isCE(n.diff) || isGB(z.sum) || isCE(z.sum)) {
-                        const crit = isAlgoEnd(n.sum) || isAlgoEnd(n.diff) || isAlgoEnd(z.sum);
-                        const active = (n.time === ny.time);
-                        html += `<div class="confluence-item ${crit?'algo-termination':''} ${active?'is-now':''}">
-                            <strong>${n.time} NY | ${z.time} ZH</strong> ${active?' [NOW]':''}
-                            <div style="font-size:0.8em; margin-top:3px;">
-                                NY: S(${n.sum}) D(${n.diff}) | ZH: S(${z.sum})
-                            </div>
-                        </div>`;
-                    }
-                }
-                list.innerHTML = html;
+            // تحديث السكنر (مرة كل دقيقة لتحسين الأداء)
+            if (now.getSeconds() === 0 || document.getElementById('scan-list').innerHTML === "") {
+                renderScan(nyH, nyM);
             }
         }
 
-        // محاكاة عداد الزوار الأصلي
-        document.getElementById('totalCount').textContent = Math.floor(Math.random()*5000 + 1000);
-        document.getElementById('onlineCount').textContent = Math.floor(Math.random()*10 + 5);
+        function renderScan(currH, currM) {
+            let html = "";
+            for (let h = 0; h < 24; h++) {
+                for (let m = 0; m < 60; m++) {
+                    const sum = h + m;
+                    const diff = Math.abs(m - h);
+                    if (gb.includes(sum) || ce.includes(sum) || term.includes(sum)) {
+                        const isCurrent = (h === currH && m === currM);
+                        const isTerm = term.includes(sum) || term.includes(diff);
+                        html += `
+                            <div class="scan-row ${isCurrent ? 'active' : ''}">
+                                <span>${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}</span>
+                                <span class="${isTerm ? 'term-alert' : ''}">${isTerm ? 'TERMINATION' : 'ACTIVE'}</span>
+                                <span>S:${sum}</span>
+                            </div>`;
+                    }
+                }
+            }
+            document.getElementById('scan-list').innerHTML = html;
+        }
 
         setInterval(update, 1000);
         update();
