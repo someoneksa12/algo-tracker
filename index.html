@@ -3,48 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GB/CE Algo Tracker - Fixed Edition</title>
+    <title>Advanced GB/CE Algo Termination Tracker</title>
     <style>
+        /* ستايل الماتريكس الأصلي الخاص بك */
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: auto; }
         body { font-family: 'Courier New', monospace; background: #000; color: #0f0; min-height: 100vh; display: flex; flex-direction: column; }
         .matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent); background-size: 50px 50px; z-index: -1; animation: matrix-move 20s linear infinite; }
         @keyframes matrix-move { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
-        .header { text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.9); border-bottom: 2px solid #0f0; }
-        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; flex-direction: column; }
+        .header { text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.9); border-bottom: 2px solid #0f0; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
+        h1 { font-size: clamp(1.2em, 4vw, 2em); text-shadow: 0 0 10px #0f0; margin-bottom: 10px; animation: glow-pulse 2s ease-in-out infinite; }
+        @keyframes glow-pulse { 0%, 100% { text-shadow: 0 0 10px #0f0; } 50% { text-shadow: 0 0 20px #0f0, 0 0 30px #0f0; } }
+        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; overflow: auto; flex-direction: column; }
         @media (min-width: 1024px) { .main-container { flex-direction: row; } }
-        .panel { background: rgba(0, 0, 0, 0.95); border: 2px solid #0f0; border-radius: 10px; padding: 15px; flex: 1; }
-        .timezone-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 8px 0; background: rgba(0, 20, 0, 0.8); border: 1px solid #0f0; border-radius: 5px; }
-        .confluence-item { padding: 10px; margin: 5px 0; background: rgba(0, 50, 0, 0.3); border-left: 3px solid #0f0; border-radius: 3px; font-size: 0.85em; }
-        .past-item { opacity: 0.5; border-left-color: #666; }
-        .future-item { border-left-color: #0ff; }
-        .algo-termination { border-color: #f00 !important; box-shadow: 0 0 10px rgba(255,0,0,0.5); }
-        .gb { color: #0f0; font-weight: bold; }
-        .ce { color: #ff0; font-weight: bold; }
+        .panel { background: rgba(0, 0, 0, 0.95); border: 2px solid #0f0; border-radius: 10px; padding: 15px; }
+        .timezone-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; margin: 8px 0; background: rgba(0, 20, 0, 0.8); border: 1px solid #0f0; border-radius: 5px; }
+        .confluence-item { padding: 10px; margin: 5px 0; background: rgba(0, 50, 0, 0.5); border-left: 3px solid #0f0; border-radius: 3px; font-size: 0.9em; }
+        .is-now { background: rgba(0, 255, 0, 0.2); border: 1px solid #0f0; box-shadow: 0 0 10px #0f0; }
+        .algo-termination { border-left-color: #ff0000; background: rgba(255, 0, 0, 0.1); }
+        .gb { color: #0f0; } .ce { color: #ff0; }
     </style>
 </head>
 <body>
     <div class="matrix-bg"></div>
     <div class="header">
-        <h1 id="title">🔮 ALGO TRACKER PRO 🔮</h1>
-        <div id="live-clock" style="color: #ff0; margin-top: 5px;">TIME: <span id="live-time">--:--:--</span></div>
+        <h1>🔮 GB/CE FULL DAY TRACKER 🔮</h1>
+        <div id="live-clock" style="color: #ff0; font-size: 1.2em;">TIME: <span id="live-time">--:--:--</span> <span style="color:#f00; animation:blink 1s infinite;">● LIVE</span></div>
     </div>
 
     <div class="main-container">
-        <div class="panel">
-            <h3>📍 CURRENT STATUS</h3>
-            <div class="timezone-row">
-                <span>NEW YORK</span>
-                <span id="ny-val" style="font-size: 1.2em;">--:--</span>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+            <div class="panel">
+                <h3>⏰ DUAL TIME SYSTEM</h3>
+                <div class="timezone-row">
+                    <span>NEW YORK</span>
+                    <span id="ny-val" style="font-weight:bold; font-size:1.4em;">--:--</span>
+                </div>
+                <div class="timezone-row">
+                    <span>ZURICH</span>
+                    <span id="zh-val" style="font-weight:bold; font-size:1.4em;">--:--</span>
+                </div>
             </div>
-            <div class="timezone-row">
-                <span>ZURICH</span>
-                <span id="zh-val" style="font-size: 1.2em;">--:--</span>
+            
+            <div class="panel">
+                <h3>📖 REFERENCE NUMBERS</h3>
+                <p style="font-size:0.8em; color:#0ff;">GB: 0, 3, 11, 17, 29, 41, 47, 50, 53, 59, 71, 83, 89, 97, 100</p>
+                <p style="font-size:0.8em; color:#ff0;">CE: 7, 14, 23, 35, 44, 56, 65, 77</p>
             </div>
         </div>
 
-        <div class="panel" style="max-width: 450px; max-height: 80vh; overflow-y: auto;">
-            <h3>⚡ 1H WINDOW SCANNER</h3>
-            <div id="window-list"></div>
+        <div style="width: 100%; max-width: 450px;">
+            <div class="panel" style="max-height: 85vh; overflow-y: scroll;">
+                <h3>⚡ FULL DAY ALGO SCAN (00:00 - 23:59)</h3>
+                <div id="full-day-list"></div>
+            </div>
         </div>
     </div>
 
@@ -70,38 +82,48 @@
             const now = new Date();
             document.getElementById('live-time').textContent = now.toLocaleTimeString('en-GB');
 
-            // تصفية أوقات نيويورك وزيورخ
-            const ny = getAnalysis(now, 'America/New_York');
-            const zh = getAnalysis(now, 'Europe/Zurich');
-            document.getElementById('ny-val').textContent = ny.time;
-            document.getElementById('zh-val').textContent = zh.time;
+            // تحديث الأوقات الحالية
+            const nyCurr = getAnalysis(now, 'America/New_York');
+            const zhCurr = getAnalysis(now, 'Europe/Zurich');
+            document.getElementById('ny-val').textContent = nyCurr.time;
+            document.getElementById('zh-val').textContent = zhCurr.time;
 
-            // تحديث القائمة
+            // بناء قائمة اليوم كامل (مرة واحدة أو عند التحديث)
+            const list = document.getElementById('full-day-list');
             let html = '';
-            for (let i = -60; i <= 60; i++) {
-                const scanTime = new Date(now.getTime() + (i * 60000));
-                const data = getAnalysis(scanTime, 'America/New_York');
+            
+            // المسح لكل دقيقة في اليوم (1440 دقيقة)
+            const startOfDay = new Date(now);
+            startOfDay.setHours(0, 0, 0, 0);
 
+            for (let i = 0; i < 1440; i++) {
+                const scanTime = new Date(startOfDay.getTime() + (i * 60000));
+                const data = getAnalysis(scanTime, 'America/New_York');
+                
+                // إضافة الوقت للقائمة فقط إذا كان يحقق الشروط
                 if (isGB(data.sum) || isCE(data.sum) || isGB(data.diff) || isCE(data.diff)) {
                     const critical = isAlgoEnd(data.sum) || isAlgoEnd(data.diff);
+                    const isNow = data.time === nyCurr.time;
+
                     html += `
-                        <div class="confluence-item ${i < 0 ? 'past-item' : 'future-item'} ${critical ? 'algo-termination' : ''}">
+                        <div class="confluence-item ${critical ? 'algo-termination' : ''} ${isNow ? 'is-now' : ''}" id="t-${data.time}">
                             <div style="display:flex; justify-content:space-between">
-                                <strong>${data.time}</strong>
-                                <span>${i === 0 ? 'NOW' : i + 'm'}</span>
+                                <strong>${data.time} ${isNow ? '<span style="color:#f00;">[NOW]</span>' : ''}</strong>
+                                <span style="font-size:0.7em; color:#888;">NY</span>
                             </div>
-                            <div style="font-size:0.8em; margin-top:3px">
+                            <div style="font-size:0.8em; margin-top:5px;">
                                 Sum: <span class="${isGB(data.sum)?'gb':'ce'}">${data.sum}</span> | 
                                 Diff: <span class="${isGB(data.diff)?'gb':'ce'}">${data.diff}</span>
-                                ${critical ? ' <b style="color:red">[TERM]</b>' : ''}
+                                ${critical ? ' <b style="color:#f00;">[TERMINATION]</b>' : ''}
                             </div>
                         </div>`;
                 }
             }
-            document.getElementById('window-list').innerHTML = html;
+            list.innerHTML = html;
         }
 
-        setInterval(update, 1000);
+        // تشغيل التحديث
+        setInterval(update, 60000); // تحديث القائمة كل دقيقة
         update();
     </script>
 </body>
